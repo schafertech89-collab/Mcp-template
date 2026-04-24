@@ -7,9 +7,11 @@ A general-purpose [Model Context Protocol](https://modelcontextprotocol.io) serv
 - Streamable HTTP transport with a single `/mcp` endpoint (POST + GET + DELETE).
 - **Stateless mode** (default): one MCP server instance per request — ideal for serverless and Perplexity.
 - **Stateful mode**: multi-turn sessions with server-initiated notifications over SSE.
+- Optional **stdio** entry point for local clients (Claude Desktop, Cursor, Zed).
 - CORS, Bearer-token auth, health check, graceful shutdown.
-- Example **tool**, **resource**, and **prompt** to copy from.
-- Dockerfile for container deploys.
+- Example **tools** (`echo`, `current_time`, `hash`, `fetch_url`), a resource, and a prompt.
+- Built-in **test client** script for quick smoke testing.
+- Dockerfile and GitHub Actions CI for container deploys.
 
 ## Quick start
 
@@ -40,6 +42,37 @@ curl -i -X POST http://localhost:3000/mcp \
 ```
 
 You should get back an SSE stream (or JSON if `MCP_ENABLE_JSON_RESPONSE=true`) containing the server's capabilities.
+
+Or use the built-in test client (spawns against a running HTTP server):
+
+```bash
+npm run test:client -- http://localhost:3000/mcp current_time '{"timezone":"UTC"}'
+```
+
+## Running over stdio (local clients)
+
+If you want to plug this server into a local MCP client (Claude Desktop, Cursor,
+Zed…), run it over stdio instead of HTTP:
+
+```bash
+npm run build
+node dist/stdio.js
+```
+
+Example Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "my-template": {
+      "command": "node",
+      "args": ["/absolute/path/to/Mcp-template/dist/stdio.js"]
+    }
+  }
+}
+```
+
+The same tools, resources, and prompts are served on both transports.
 
 ## Connecting from the Perplexity web app
 
@@ -115,10 +148,13 @@ docker run --rm -p 3000:3000 -e MCP_AUTH_TOKEN=changeme mcp-template
 
 ## Scripts
 
-- `npm run dev` — hot-reload with `tsx`
-- `npm run build` — type-check + emit `dist/`
-- `npm start` — run the compiled server
-- `npm run typecheck` — type-check without emitting
+- `npm run dev` — hot-reload the HTTP server with `tsx`
+- `npm run dev:stdio` — hot-reload the stdio entry
+- `npm run build` — emit `dist/`
+- `npm start` — run the compiled HTTP server
+- `npm run start:stdio` — run the compiled stdio server
+- `npm run test:client` — run the built-in MCP client against a URL
+- `npm run typecheck` — type-check `src/` and `scripts/` without emitting
 
 ## License
 
