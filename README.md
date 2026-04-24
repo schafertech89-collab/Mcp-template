@@ -183,6 +183,13 @@ npm run typecheck  # type-check src + scripts + test
 - `npm run test:client` — run the built-in MCP client against a URL
 - `npm run typecheck` — type-check `src/`, `scripts/`, and `test/` without emitting
 
+## Variants
+
+- [`obsidian/`](./obsidian) — a ready-to-run MCP server that connects a
+  local **Obsidian vault** to Perplexity over Streamable HTTP. Edit one
+  `config.json` to point at your vault; 12 tools cover read, write,
+  search, backlinks, daily notes, tags, and metadata.
+
 ## License
 
 MIT

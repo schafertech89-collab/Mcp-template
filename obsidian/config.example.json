@@ -1,0 +1,25 @@
+{
+  "_comment": "Copy this file to config.json and edit vaultPath. All other fields are optional.",
+  "vaultPath": "/ABSOLUTE/PATH/TO/YOUR/Obsidian Vault",
+
+  "readOnly": false,
+  "allowDelete": false,
+
+  "dailyNotesFolder": "Daily",
+  "dailyNoteDateFormat": "YYYY-MM-DD",
+
+  "exclude": [".obsidian", ".trash", ".git", "node_modules"],
+
+  "maxFileBytes": 1048576,
+  "maxSearchResults": 50,
+  "defaultExtension": ".md",
+
+  "server": {
+    "host": "127.0.0.1",
+    "port": 3737,
+    "mcpPath": "/mcp",
+    "authToken": "",
+    "allowedOrigins": ["*"],
+    "trustProxy": false
+  }
+}
