@@ -3,6 +3,7 @@ import express, { type NextFunction, type Request, type Response } from "express
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { loadConfig, type ServerConfig } from "./config.js";
+import { rateLimit } from "./rate-limit.js";
 import { createMcpServer } from "./server.js";
 
 const SESSION_HEADER = "mcp-session-id";
@@ -49,6 +50,7 @@ interface Session {
 async function main(): Promise<void> {
   const config = loadConfig();
   const app = express();
+  if (config.trustProxy) app.set("trust proxy", true);
   app.use(express.json({ limit: "4mb" }));
 
   app.use((req, res, next) => {
@@ -105,6 +107,9 @@ async function main(): Promise<void> {
   }
 
   const mcpRouter = express.Router();
+  if (config.rateLimit) {
+    mcpRouter.use(rateLimit(config.rateLimit));
+  }
   mcpRouter.use(requireAuth(config));
 
   mcpRouter.post("/", async (req: Request, res: Response) => {

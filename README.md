@@ -8,10 +8,10 @@ A general-purpose [Model Context Protocol](https://modelcontextprotocol.io) serv
 - **Stateless mode** (default): one MCP server instance per request — ideal for serverless and Perplexity.
 - **Stateful mode**: multi-turn sessions with server-initiated notifications over SSE.
 - Optional **stdio** entry point for local clients (Claude Desktop, Cursor, Zed).
-- CORS, Bearer-token auth, health check, graceful shutdown.
+- CORS, Bearer-token auth, per-IP rate limiting, health check, graceful shutdown.
 - Example **tools** (`echo`, `current_time`, `hash`, `fetch_url`), a resource, and a prompt.
-- Built-in **test client** script for quick smoke testing.
-- Dockerfile and GitHub Actions CI for container deploys.
+- Built-in **test client** script and `node:test` unit tests.
+- Dockerfile, docker-compose, Fly.io and Render recipes, and GitHub Actions CI.
 
 ## Quick start
 
@@ -138,12 +138,38 @@ All configuration is environment-driven. See `.env.example`:
 | `MCP_ENABLE_JSON_RESPONSE` | `false` | Return plain JSON instead of SSE when no stream is needed |
 | `ALLOWED_ORIGINS` | `*` | Comma-separated CORS allowlist |
 | `MCP_AUTH_TOKEN` | _(unset)_ | If set, requires `Authorization: Bearer <token>` |
+| `RATE_LIMIT_MAX` | _(unset, off)_ | Max requests per IP per window. Leave empty to disable. |
+| `RATE_LIMIT_WINDOW_MS` | `60000` | Rate-limit window size in milliseconds |
+| `TRUST_PROXY` | `false` | Honour `X-Forwarded-For` (set `true` behind a proxy/load balancer) |
 
-## Docker
+## Deploy
+
+Ready-to-copy recipes live in [`deploy/`](./deploy):
+
+- `deploy/fly.toml` — Fly.io
+- `deploy/render.yaml` — Render blueprint
+- `deploy/docker-compose.yml` — local/self-hosted compose stack
+- `Dockerfile` — plain Docker build
 
 ```bash
+# Docker
 docker build -t mcp-template .
 docker run --rm -p 3000:3000 -e MCP_AUTH_TOKEN=changeme mcp-template
+
+# Fly.io
+cp deploy/fly.toml .
+fly launch --copy-config --no-deploy
+fly secrets set MCP_AUTH_TOKEN=$(openssl rand -hex 32)
+fly deploy
+```
+
+See [`deploy/README.md`](./deploy/README.md) for details.
+
+## Tests
+
+```bash
+npm test           # unit tests (node:test, no extra deps)
+npm run typecheck  # type-check src + scripts + test
 ```
 
 ## Scripts
@@ -153,8 +179,9 @@ docker run --rm -p 3000:3000 -e MCP_AUTH_TOKEN=changeme mcp-template
 - `npm run build` — emit `dist/`
 - `npm start` — run the compiled HTTP server
 - `npm run start:stdio` — run the compiled stdio server
+- `npm test` — run unit tests via `node:test`
 - `npm run test:client` — run the built-in MCP client against a URL
-- `npm run typecheck` — type-check `src/` and `scripts/` without emitting
+- `npm run typecheck` — type-check `src/`, `scripts/`, and `test/` without emitting
 
 ## License
 

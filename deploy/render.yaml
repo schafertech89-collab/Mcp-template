@@ -1,0 +1,23 @@
+# Render.com blueprint. Copy to ./render.yaml at the repo root, then
+# point Render at this repo to auto-provision the service.
+#
+# After the first deploy, set MCP_AUTH_TOKEN in the Render dashboard
+# (Environment -> Secret) to a strong random string.
+
+services:
+  - type: web
+    name: mcp-streamable-http-template
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: HOST
+        value: "0.0.0.0"
+      - key: MCP_STATELESS
+        value: "true"
+      - key: TRUST_PROXY
+        value: "true"
+      - key: MCP_AUTH_TOKEN
+        sync: false
