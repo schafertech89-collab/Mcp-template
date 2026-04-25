@@ -188,7 +188,8 @@ npm run typecheck  # type-check src + scripts + test
 - [`obsidian/`](./obsidian) — a ready-to-run MCP server that connects a
   local **Obsidian vault** to Perplexity over Streamable HTTP. Edit one
   `config.json` to point at your vault; 12 tools cover read, write,
-  search, backlinks, daily notes, tags, and metadata.
+  search, backlinks, daily notes, tags, and metadata. Includes an
+  in-browser **setup wizard** (`npm run setup`) tailored for Windows 11.
 
 ## License
 

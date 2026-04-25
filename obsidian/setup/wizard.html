@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Obsidian MCP Setup Wizard</title>
+<style>
+  :root {
+    --bg: #f3f3f3;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #5c5c5c;
+    --accent: #0078d4;
+    --accent-hover: #106ebe;
+    --border: #e5e5e5;
+    --good: #107c10;
+    --warn: #b97400;
+    --bad: #c42b1c;
+    --code-bg: #f6f8fa;
+    --shadow: 0 2px 16px rgba(0,0,0,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #202020;
+      --card: #2b2b2b;
+      --text: #f3f3f3;
+      --muted: #a0a0a0;
+      --accent: #4cc2ff;
+      --accent-hover: #67cdfd;
+      --border: #3a3a3a;
+      --good: #6ccb5f;
+      --warn: #f7c142;
+      --bad: #ff6b6b;
+      --code-bg: #1f1f1f;
+      --shadow: 0 2px 16px rgba(0,0,0,0.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .app {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  .sidebar {
+    padding: 32px 20px;
+    border-right: 1px solid var(--border);
+    background: var(--card);
+  }
+  .brand {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .brand-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .steps li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    cursor: default;
+    color: var(--muted);
+  }
+  .steps li.active {
+    background: rgba(0, 120, 212, 0.10);
+    color: var(--text);
+  }
+  .steps li.done {
+    color: var(--text);
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .steps li.active .step-num { background: var(--accent); color: #fff; }
+  .steps li.done .step-num { background: var(--good); color: #fff; }
+  .main {
+    padding: 40px 48px;
+    overflow-y: auto;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 32px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 8px; }
+  h2 { font-size: 16px; font-weight: 600; margin: 24px 0 8px; }
+  p  { margin: 0 0 12px; color: var(--muted); }
+  p.lead { color: var(--text); margin-bottom: 20px; }
+  label { display: block; font-weight: 600; margin: 16px 0 6px; }
+  .help { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  input[type=text], input[type=number], textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+  }
+  input[type=text]:focus, input[type=number]:focus, textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+    border-color: transparent;
+  }
+  textarea { font-family: "Consolas", "Cascadia Code", monospace; font-size: 13px; resize: vertical; min-height: 80px; }
+  .row { display: flex; gap: 12px; align-items: center; }
+  .row > * { flex: 1; }
+  .row > button { flex: 0; white-space: nowrap; }
+  button {
+    padding: 8px 18px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  button:hover { background: var(--bg); }
+  button.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  button.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .toggle { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 10px; cursor: pointer; }
+  .toggle input { margin-top: 3px; flex-shrink: 0; }
+  .toggle .t-title { font-weight: 600; }
+  .toggle .t-desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+  .status.good { color: var(--good); }
+  .status.warn { color: var(--warn); }
+  .status.bad  { color: var(--bad); }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--border);
+  }
+  .badge.good { background: var(--good); color: #fff; }
+  .badge.bad  { background: var(--bad); color: #fff; }
+  pre, code {
+    font-family: "Consolas", "Cascadia Code", monospace;
+    font-size: 13px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 12px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    overflow-x: auto;
+    margin: 8px 0;
+  }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; }
+  .review {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    margin: 12px 0;
+  }
+  .review-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .review-row:last-child { border-bottom: none; }
+  .review-row .k { color: var(--muted); }
+  .review-row .v { font-family: "Consolas", "Cascadia Code", monospace; word-break: break-all; }
+  .tunnel-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .tunnel-card h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .copy-btn {
+    float: right;
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  .hidden { display: none !important; }
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .tools-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .tools-list .badge { background: var(--good); color: #fff; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">Obsidian MCP</div>
+    <div class="brand-sub">Setup Wizard</div>
+    <ol class="steps" id="steps">
+      <li data-step="1"><span class="step-num">1</span> Welcome</li>
+      <li data-step="2"><span class="step-num">2</span> Vault path</li>
+      <li data-step="3"><span class="step-num">3</span> Permissions</li>
+      <li data-step="4"><span class="step-num">4</span> Server &amp; auth</li>
+      <li data-step="5"><span class="step-num">5</span> Review &amp; save</li>
+      <li data-step="6"><span class="step-num">6</span> Test &amp; connect</li>
+    </ol>
+  </aside>
+
+  <main class="main">
+    <div class="card">
+
+      <!-- Step 1: Welcome -->
+      <section data-panel="1">
+        <h1>Welcome</h1>
+        <p class="lead">This wizard configures your local Obsidian vault to be reachable by Perplexity (or any MCP client) via Streamable HTTP.</p>
+        <h2>System check</h2>
+        <div id="sys-info">Loading...</div>
+        <h2>What this wizard does</h2>
+        <ol>
+          <li>Asks for the absolute path to your Obsidian vault.</li>
+          <li>Lets you choose read-only / writable and which tools are exposed.</li>
+          <li>Generates a strong API token for Perplexity to authenticate with.</li>
+          <li>Writes <code>config.json</code> in this folder.</li>
+          <li>Boots the MCP server briefly and verifies the tools list.</li>
+          <li>Walks you through exposing it over HTTPS for Perplexity (Windows 11).</li>
+        </ol>
+      </section>
+
+      <!-- Step 2: Vault path -->
+      <section data-panel="2" class="hidden">
+        <h1>Pick your Obsidian vault</h1>
+        <p class="lead">Paste the absolute path to your vault folder. On Windows it looks like <code>C:\Users\You\Documents\My Vault</code>.</p>
+        <label for="vault-path">Vault path</label>
+        <div class="row">
+          <input type="text" id="vault-path" placeholder="C:\Users\You\Documents\My Vault" autocomplete="off" spellcheck="false" />
+          <button type="button" id="vault-validate">Validate</button>
+        </div>
+        <div class="help">Tip in Windows 11: open the vault folder in File Explorer, click the address bar, and copy the path.</div>
+        <div id="vault-status" class="status"></div>
+      </section>
+
+      <!-- Step 3: Permissions -->
+      <section data-panel="3" class="hidden">
+        <h1>Permissions &amp; behaviour</h1>
+        <p class="lead">Choose what Perplexity is allowed to do with your vault. You can change these later by editing <code>config.json</code>.</p>
+
+        <label class="toggle">
+          <input type="checkbox" id="perm-readonly" />
+          <div>
+            <div class="t-title">Read-only mode</div>
+            <div class="t-desc">Disables every tool that creates, edits, renames, or deletes notes. Recommended if you only want Perplexity to search and read.</div>
+          </div>
+        </label>
+
+        <label class="toggle">
+          <input type="checkbox" id="perm-delete" />
+          <div>
+            <div class="t-title">Allow deletions</div>
+            <div class="t-desc">Required for the <code>vault_delete_note</code> tool. Off by default — even when writes are enabled.</div>
+          </div>
+        </label>
+
+        <label for="exclude">Excluded folders (one per line)</label>
+        <textarea id="exclude" rows="4">.obsidian
+.trash
+.git</textarea>
+        <div class="help">These folders are skipped during listing and search.</div>
+
+        <h2>Daily notes</h2>
+        <div class="row" style="align-items: stretch;">
+          <div>
+            <label for="daily-folder">Folder</label>
+            <input type="text" id="daily-folder" value="Daily" />
+          </div>
+          <div>
+            <label for="daily-format">Date format</label>
+            <input type="text" id="daily-format" value="YYYY-MM-DD" />
+          </div>
+        </div>
+        <div class="help">Tokens: <code>YYYY MM DD HH mm ss</code>. The <code>vault_daily_note</code> tool uses this folder + format.</div>
+      </section>
+
+      <!-- Step 4: Server & auth -->
+      <section data-panel="4" class="hidden">
+        <h1>Server &amp; authentication</h1>
+        <p class="lead">The MCP server runs on this machine and listens on a local port. Bind to <code>127.0.0.1</code> so only your machine (and your tunnel) can reach it.</p>
+
+        <div class="row" style="align-items: stretch;">
+          <div>
+            <label for="srv-host">Host</label>
+            <input type="text" id="srv-host" value="127.0.0.1" />
+            <div class="help">Keep this as <code>127.0.0.1</code> unless you know why you'd change it.</div>
+          </div>
+          <div>
+            <label for="srv-port">Port</label>
+            <input type="number" id="srv-port" value="3737" min="1" max="65535" />
+            <div id="port-status" class="status"></div>
+          </div>
+        </div>
+
+        <label for="auth-token">API token (Bearer)</label>
+        <div class="row">
+          <input type="text" id="auth-token" placeholder="Generate or paste a long random string" autocomplete="off" spellcheck="false" />
+          <button type="button" id="gen-token">Generate</button>
+        </div>
+        <div class="help">Perplexity will send this as <code>Authorization: Bearer &lt;token&gt;</code>. Required when exposing publicly.</div>
+      </section>
+
+      <!-- Step 5: Review & save -->
+      <section data-panel="5" class="hidden">
+        <h1>Review &amp; save</h1>
+        <p class="lead">This is what will be written to <code id="config-path-out"></code>.</p>
+        <div class="review" id="review"></div>
+        <button type="button" id="save-config" class="primary">Save config.json</button>
+        <div id="save-status" class="status"></div>
+      </section>
+
+      <!-- Step 6: Test & connect -->
+      <section data-panel="6" class="hidden">
+        <h1>Test &amp; connect</h1>
+        <p class="lead">First we'll boot the MCP server briefly to confirm it works, then walk through exposing it over HTTPS so Perplexity can reach it.</p>
+
+        <h2>1. Smoke test the MCP server</h2>
+        <button type="button" id="test-server" class="primary">Run smoke test</button>
+        <div id="test-status" class="status"></div>
+        <div id="test-tools" class="tools-list"></div>
+
+        <h2>2. Expose to Perplexity over HTTPS</h2>
+        <p>Perplexity needs an HTTPS URL. Pick a tunnel below — this wizard detects what's installed on your machine.</p>
+        <div id="tunnel-cards"></div>
+
+        <h2>3. Add the connector in Perplexity</h2>
+        <p>Once your tunnel is running and gives you an <code>https://...</code> URL, open Perplexity and:</p>
+        <ol>
+          <li>Go to <strong>Settings &rarr; Connectors &rarr; Add custom connector</strong></li>
+          <li><strong>Server URL</strong>: <code id="perplexity-url-hint">https://your-tunnel-host/mcp</code></li>
+          <li><strong>Transport</strong>: Streamable HTTP</li>
+          <li><strong>Authentication</strong>: API Key (Bearer)
+            <pre id="perplexity-token-hint"></pre>
+          </li>
+          <li>Save. Perplexity validates the endpoint; if it succeeds, enable the connector in a Space or chat.</li>
+        </ol>
+
+        <h2>4. Run the server in production</h2>
+        <p>You can close this wizard. To run the MCP server normally:</p>
+        <pre>cd <span id="obsidian-root-hint"></span>
+npm start</pre>
+      </section>
+
+      <div class="footer">
+        <button type="button" id="back" disabled>Back</button>
+        <button type="button" id="next" class="primary">Next</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const state = {
+  step: 1,
+  total: 6,
+  config: null,
+  vaultValidated: false,
+  saved: false,
+  serverInfo: null,
+};
+
+async function api(path, body) {
+  const opts = { method: body ? "POST" : "GET", headers: { "content-type": "application/json" } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if (!res.ok) throw new Error(`${path} returned ${res.status}`);
+  return res.json();
+}
+
+function $(id) { return document.getElementById(id); }
+function show(panel) {
+  document.querySelectorAll("[data-panel]").forEach((el) => el.classList.add("hidden"));
+  document.querySelector(`[data-panel="${panel}"]`).classList.remove("hidden");
+  document.querySelectorAll(".steps li").forEach((li) => {
+    const n = Number(li.dataset.step);
+    li.classList.toggle("active", n === panel);
+    li.classList.toggle("done", n < panel);
+  });
+  $("back").disabled = panel === 1;
+  $("next").textContent = panel === state.total ? "Finish" : "Next";
+}
+
+function setStatus(el, kind, text) {
+  el.className = `status ${kind || ""}`;
+  el.textContent = text;
+}
+
+async function init() {
+  const s = await api("/api/state");
+  state.serverInfo = s;
+  const sys = $("sys-info");
+  const winNote = s.platform === "win32" ? '<span class="badge good">Windows 11 ready</span>' : `<span class="badge">${s.platform}</span>`;
+  sys.innerHTML = `
+    <div class="review">
+      <div class="review-row"><div class="k">Platform</div><div class="v">${winNote}</div></div>
+      <div class="review-row"><div class="k">Node version</div><div class="v">${s.nodeVersion}</div></div>
+      <div class="review-row"><div class="k">Config will be saved to</div><div class="v">${s.configPath}</div></div>
+      <div class="review-row"><div class="k">cloudflared installed</div><div class="v">${s.tools.cloudflared ? '<span class="badge good">yes</span>' : '<span class="badge">no</span>'}</div></div>
+      <div class="review-row"><div class="k">ngrok installed</div><div class="v">${s.tools.ngrok ? '<span class="badge good">yes</span>' : '<span class="badge">no</span>'}</div></div>
+    </div>`;
+
+  $("config-path-out").textContent = s.configPath;
+  $("obsidian-root-hint").textContent = s.obsidianRoot;
+
+  // Pre-fill from existing config if present.
+  state.config = s.existing || s.defaults;
+  if (s.existing) {
+    $("vault-path").value = s.existing.vaultPath || "";
+    $("perm-readonly").checked = !!s.existing.readOnly;
+    $("perm-delete").checked = !!s.existing.allowDelete;
+    $("exclude").value = (s.existing.exclude || []).join("\n");
+    $("daily-folder").value = s.existing.dailyNotesFolder || "Daily";
+    $("daily-format").value = s.existing.dailyNoteDateFormat || "YYYY-MM-DD";
+    $("srv-host").value = s.existing.server?.host || "127.0.0.1";
+    $("srv-port").value = s.existing.server?.port || 3737;
+    $("auth-token").value = s.existing.server?.authToken || "";
+    state.vaultValidated = !!s.existing.vaultPath;
+  }
+}
+
+function buildConfig() {
+  return {
+    vaultPath: $("vault-path").value.trim(),
+    readOnly: $("perm-readonly").checked,
+    allowDelete: $("perm-delete").checked,
+    dailyNotesFolder: $("daily-folder").value.trim() || "Daily",
+    dailyNoteDateFormat: $("daily-format").value.trim() || "YYYY-MM-DD",
+    exclude: $("exclude").value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean),
+    maxFileBytes: state.config.maxFileBytes ?? 1048576,
+    maxSearchResults: state.config.maxSearchResults ?? 50,
+    defaultExtension: state.config.defaultExtension ?? ".md",
+    server: {
+      host: $("srv-host").value.trim() || "127.0.0.1",
+      port: Number($("srv-port").value) || 3737,
+      mcpPath: "/mcp",
+      authToken: $("auth-token").value.trim(),
+      allowedOrigins: ["*"],
+      trustProxy: true,
+    },
+  };
+}
+
+function renderReview() {
+  const cfg = buildConfig();
+  state.config = cfg;
+  const r = $("review");
+  r.innerHTML = `
+    <div class="review-row"><div class="k">Vault path</div><div class="v">${cfg.vaultPath}</div></div>
+    <div class="review-row"><div class="k">Read-only</div><div class="v">${cfg.readOnly ? "yes" : "no"}</div></div>
+    <div class="review-row"><div class="k">Allow deletions</div><div class="v">${cfg.allowDelete ? "yes" : "no"}</div></div>
+    <div class="review-row"><div class="k">Excluded folders</div><div class="v">${cfg.exclude.join(", ") || "(none)"}</div></div>
+    <div class="review-row"><div class="k">Daily notes</div><div class="v">${cfg.dailyNotesFolder} / ${cfg.dailyNoteDateFormat}</div></div>
+    <div class="review-row"><div class="k">Server</div><div class="v">http://${cfg.server.host}:${cfg.server.port}${cfg.server.mcpPath}</div></div>
+    <div class="review-row"><div class="k">API token</div><div class="v">${cfg.server.authToken ? cfg.server.authToken.slice(0, 8) + "..." + cfg.server.authToken.slice(-4) : '<span style="color: var(--bad)">none (insecure for public exposure)</span>'}</div></div>
+  `;
+}
+
+function renderTunnels() {
+  const s = state.serverInfo;
+  const port = state.config?.server?.port || 3737;
+  const isWin = s.platform === "win32";
+
+  const cards = [
+    {
+      name: "Cloudflare Tunnel (recommended)",
+      installed: s.tools.cloudflared,
+      install: isWin ? "winget install --id Cloudflare.cloudflared" : "https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/",
+      run: `cloudflared tunnel --url http://127.0.0.1:${port}`,
+      note: "Free, stable, no signup needed for ephemeral URLs. Look for the https://*.trycloudflare.com line in the output.",
+    },
+    {
+      name: "ngrok",
+      installed: s.tools.ngrok,
+      install: isWin ? "winget install --id Ngrok.Ngrok" : "https://ngrok.com/download",
+      run: `ngrok http ${port}`,
+      note: "Requires a free ngrok.com account. Look for the Forwarding line in the output.",
+    },
+  ];
+
+  $("tunnel-cards").innerHTML = cards.map((c) => `
+    <div class="tunnel-card">
+      <h3>${c.name} ${c.installed ? '<span class="badge good">installed</span>' : '<span class="badge">not installed</span>'}</h3>
+      ${!c.installed ? `<p>Install (Windows 11):</p><pre>${c.install}</pre>` : ""}
+      <p>Then run:</p>
+      <pre>${c.run}<button class="copy-btn" onclick="navigator.clipboard.writeText('${c.run}')">Copy</button></pre>
+      <p>${c.note}</p>
+    </div>`).join("");
+
+  if (state.config?.server?.authToken) {
+    $("perplexity-token-hint").textContent = state.config.server.authToken;
+  } else {
+    $("perplexity-token-hint").textContent = "(no token configured)";
+  }
+}
+
+async function validateVault() {
+  const path = $("vault-path").value.trim();
+  if (!path) {
+    setStatus($("vault-status"), "bad", "Enter a path first.");
+    return false;
+  }
+  setStatus($("vault-status"), "", "Checking...");
+  try {
+    const res = await api("/api/validate-vault", { vaultPath: path });
+    if (!res.valid) {
+      setStatus($("vault-status"), "bad", res.error);
+      state.vaultValidated = false;
+      return false;
+    }
+    let msg = `Found vault with ${res.noteCount} markdown note${res.noteCount === 1 ? "" : "s"}.`;
+    if (res.hasObsidianFolder) msg += " .obsidian folder detected.";
+    setStatus($("vault-status"), res.warning ? "warn" : "good", res.warning ? `${msg} Warning: ${res.warning}` : msg);
+    state.vaultValidated = true;
+    return true;
+  } catch (err) {
+    setStatus($("vault-status"), "bad", err.message);
+    return false;
+  }
+}
+
+async function checkPort() {
+  const port = Number($("srv-port").value);
+  if (!port) return;
+  setStatus($("port-status"), "", "Checking...");
+  try {
+    const res = await api("/api/check-port", { port });
+    setStatus($("port-status"), res.free ? "good" : "warn", res.free ? `Port ${port} is free.` : `Port ${port} is in use. Pick another or stop the other process.`);
+  } catch (err) {
+    setStatus($("port-status"), "bad", err.message);
+  }
+}
+
+async function generateToken() {
+  const res = await api("/api/gen-token");
+  $("auth-token").value = res.token;
+}
+
+async function saveConfig() {
+  setStatus($("save-status"), "", "Saving...");
+  try {
+    const res = await api("/api/save-config", buildConfig());
+    setStatus($("save-status"), "good", `Saved to ${res.path}`);
+    state.saved = true;
+  } catch (err) {
+    setStatus($("save-status"), "bad", err.message);
+  }
+}
+
+async function testServer() {
+  setStatus($("test-status"), "", '<span class="spinner"></span> Booting server and running initialize + tools/list...');
+  $("test-status").innerHTML = '<span class="spinner"></span> Booting server and running initialize + tools/list...';
+  $("test-tools").innerHTML = "";
+  try {
+    const res = await api("/api/test-server", {});
+    if (res.ok) {
+      setStatus($("test-status"), "good", `Smoke test passed. ${res.tools.length} tool${res.tools.length === 1 ? "" : "s"} registered.`);
+      $("test-tools").innerHTML = res.tools.map((t) => `<span class="badge good">${t}</span>`).join("");
+    } else {
+      setStatus($("test-status"), "bad", `Smoke test failed: ${res.error}`);
+    }
+  } catch (err) {
+    setStatus($("test-status"), "bad", err.message);
+  }
+}
+
+async function next() {
+  if (state.step === 2) {
+    if (!state.vaultValidated) {
+      const ok = await validateVault();
+      if (!ok) return;
+    }
+  }
+  if (state.step === 4) {
+    if (!$("auth-token").value.trim()) {
+      if (!confirm("You have not set an API token. Anyone who reaches your tunnel URL will be able to read (and possibly modify) your vault. Continue anyway?")) return;
+    }
+  }
+  if (state.step === state.total) {
+    window.close();
+    return;
+  }
+  state.step += 1;
+  if (state.step === 5) renderReview();
+  if (state.step === 6) renderTunnels();
+  show(state.step);
+}
+
+function back() {
+  if (state.step === 1) return;
+  state.step -= 1;
+  show(state.step);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  show(1);
+  init().catch((err) => alert("Failed to load wizard state: " + err.message));
+
+  $("next").addEventListener("click", next);
+  $("back").addEventListener("click", back);
+  $("vault-validate").addEventListener("click", validateVault);
+  $("vault-path").addEventListener("input", () => { state.vaultValidated = false; });
+  $("srv-port").addEventListener("change", checkPort);
+  $("gen-token").addEventListener("click", generateToken);
+  $("save-config").addEventListener("click", saveConfig);
+  $("test-server").addEventListener("click", testServer);
+});
+</script>
+</body>
+</html>

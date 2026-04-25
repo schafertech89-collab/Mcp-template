@@ -20,7 +20,39 @@ Based on the Perplexity custom-connector docs (checked 2026-04-24):
 - Authentication: **API key** (Bearer token). Set one in `config.json`
   and Perplexity sends it as `Authorization: Bearer <token>`.
 
-## 1. Install
+## Quickest path: GUI setup wizard (Windows 11)
+
+If you're on Windows 11 (or anywhere with a browser), the wizard does
+all of this for you:
+
+```powershell
+cd obsidian
+npm install
+npm run setup
+```
+
+That boots a local-only setup server, opens your default browser to a
+six-step wizard, validates your vault path, generates an API token,
+writes `config.json`, smoke-tests the MCP server, and shows you the
+exact `cloudflared` / `ngrok` commands plus the Perplexity connector
+fields to paste in.
+
+Steps in the wizard:
+
+1. **Welcome** — system check (Node version, detects `cloudflared` / `ngrok`).
+2. **Vault path** — paste the absolute path; live-validated (`.obsidian` folder + note count).
+3. **Permissions** — read-only toggle, allow-delete toggle, exclusions, daily-notes folder/format.
+4. **Server & auth** — host/port (with port-availability check) and one-click API token generator.
+5. **Review & save** — see exactly what will be written, then click Save.
+6. **Test & connect** — boots the MCP server briefly, lists the 12 detected tools, shows tunnel install/run commands, and gives you the URL+token to paste into Perplexity.
+
+The wizard server only listens on `127.0.0.1` and rejects non-loopback
+clients defence-in-depth, so it's safe to leave running while you fill
+out the form.
+
+If you'd rather edit the file by hand, see the next section.
+
+## 1. Install (manual path)
 
 ```bash
 cd obsidian
@@ -194,11 +226,12 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ## Scripts
 
+- `npm run setup` — launch the browser-based GUI setup wizard
 - `npm run dev` — hot-reload HTTP server (`tsx`)
 - `npm run dev:stdio` — hot-reload stdio server
 - `npm start` / `npm run start:stdio` — run the compiled servers
 - `npm test` — unit tests against an ephemeral test vault
-- `npm run typecheck` — type-check `src/` and `test/`
+- `npm run typecheck` — type-check `src/`, `test/`, and `setup/`
 - `npm run build` / `npm run clean`
 
 ## License
